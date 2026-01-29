@@ -1,3 +1,4 @@
 txt.txt
 banco.db
 **/__pycache__/
+.env
