@@ -1,11 +1,37 @@
 from fastapi import APIRouter, Depends, HTTPException
 from models import Usuario
 from dependencies import pegar_sessao
-from main import bcrypt_context
-from schemas import UsuarioSchema
+from main import bcrypt_context,ALGORITHM, ACCESS_TOKEN_EXPIRE_MINUTES, SECRET_KEY
+from schemas import UsuarioSchema, LoginSchema
 from sqlalchemy.orm import Session 
+from jose import jwt, JWTError
+from datetime import datetime, timedelta, timezone
 
 auth_router = APIRouter(prefix="/auth", tags=["auth"])
+
+def criar_token(id_usuario, duracao_token=timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)):
+    data_expiracao = datetime.now(timezone.utc) + duracao_token
+    dic_info = {"sub": id_usuario, "exp": data_expiracao}
+    jwt_codificado = jwt.encode(dic_info, SECRET_KEY, ALGORITHM)
+    # sub => identificador de quem é o token
+    # JWT (Decodifica codigos, e queremos esses dois de baixo)
+    # id_usuario
+    # data_expiracao
+    return jwt_codificado
+
+def verificar_token(token, session = Session(pegar_sessao)):
+    # verificar se o token e valido, sendo token valido tem que extrair o id do usuario do token
+    usuario = session.query(Usuario).filter(usuario.id==1).first()
+    return usuario
+
+
+def autenticar_usuario(email, senha, session):
+    usuario = session.query(Usuario).filter(Usuario.email==email).first()
+    if not usuario:
+        return False
+    elif not bcrypt_context.verify(senha, usuario.senha):
+        return False
+    return usuario
 
 @auth_router.get("/")
 async def home():
@@ -15,19 +41,41 @@ async def home():
     return {"mensagem": "mensagem"}
 
 @auth_router.post("/criar_conta")
-async def criar_conta(usuario_schema: UsuarioSchema, session: Session = Depends(pegar_sessao)):# session vai ser o parametro que o usuario vai mandar
-    usuario = session.query(Usuario).filter(Usuario.email==usuario_schema.email).first()# Puxando sessao
-    if usuario: 
+async def criar_conta(usuario_schema: UsuarioSchema, session: Session = Depends(pegar_sessao)):
+    usuario = session.query(Usuario).filter(Usuario.email==usuario_schema.email).first()
+    if usuario:
         # ja existe um usuario com esse email
-        raise HTTPException(status_code=400, detail="E-mail de usuário já cadastrado")
+        raise HTTPException(status_code=400, detail="E-mail do usuário já cadastrado")
     else:
         senha_criptografada = bcrypt_context.hash(usuario_schema.senha)
-        
-        # TRANSFORMA O SCHEMA EM DICIONÁRIO (O PULO DO GATO DO LIRA)
-        dados_usuario = usuario_schema.model_dump()
-        dados_usuario["senha"] = senha_criptografada
-        
-        novo_usuario = Usuario(usuario_schema.nome, usuario_schema.email, senha_criptografada, usuario_schema.ativo, usuario_schema.admin)# Suficiente para criar um usuario =>
+        novo_usuario = Usuario(usuario_schema.nome, usuario_schema.email, senha_criptografada, usuario_schema.ativo, usuario_schema.admin)
         session.add(novo_usuario)
         session.commit()
-        return {"Mensagem": f"usuário criado com sucesso {usuario_schema.email}"}#  <=
+        return {"mensagem": f"usuário cadastrado com sucesso {usuario_schema.email}"}
+    
+# login => email e senha => tokem jwt (Json web token)
+@auth_router.post("/login")
+async def login(login_schema: LoginSchema, session: Session = Depends(pegar_sessao)):
+    # Verificando se existe alguma coisa, pegando o primeiro da tabela
+    usuario = autenticar_usuario(login_schema.email, login_schema.senha, session)
+    if not usuario:
+        raise HTTPException(status_code=400, detail=("Usuário não encontrado ou credenciais inválidas"))
+    # Processo de fazer login e criar um token para o usuario
+    else:
+        access_token = criar_token(usuario.id)#JWT Bearer => headers = {"Access-Token": "Bearer token"}
+        refresh_token = criar_token(usuario.id, duracao_token=timedelta(days=7))
+        return {
+                "access_token": access_token,
+                "refresh_token": refresh_token,
+                "token_type": "Bearer"
+                }
+        
+@auth_router.get("/refresh")
+async def use_refresh_token(token = Depends()):
+    # verificar o token
+    usuario = verificar_token(token)
+    access_token = criar_token(usuario.id)
+    return {
+            "access_token": access_token,
+            "token_type": "Bearer"
+                }

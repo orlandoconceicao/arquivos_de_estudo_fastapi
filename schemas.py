@@ -11,3 +11,16 @@ class UsuarioSchema(BaseModel):
     # isso faz que a class de cima seja vista como um dicionário padrão de py
     class Config:
         from_attributes = True
+        
+class PedidoSchema(BaseModel):# Pedido schema tem que ter a mesma variavel de criar pedido no arq auth
+    usuario: int
+    
+    class Config:
+        from_attributes = True
+        
+class LoginSchema(BaseModel):
+    email: str
+    senha: str
+    
+    class Config:
+        from_atributes = True
