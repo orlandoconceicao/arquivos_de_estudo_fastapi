@@ -42,3 +42,10 @@ Este projeto tem como objetivo consolidar conhecimentos em:
 │   ├── main.py        # Ponto de entrada da aplicação
 │   ├── routes/        # Definição das rotas da API
 │   ├── schemas/       # Sc
+
+## 👨‍💻 Autor
+
+**Orlando Conceição**  
+Back-end Developer  
+
+📧 Contato: orlandoconceicao94@gmail.com
