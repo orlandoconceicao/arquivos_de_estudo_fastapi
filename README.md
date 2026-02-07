@@ -5,7 +5,7 @@ Projeto backend desenvolvido para praticar e consolidar a construção de APIs R
 ---
 
 ## 📌 Links do Projeto
-- 📘 **API em produção (Swagger):** [Visualizar Documentação](https://fastapi-studies.onrender.com)
+- 📘 **API em produção (Swagger):** [Visualizar Documentação](https://fastapi-studies.onrender.com/docs)
 - 📂 **Repositório GitHub:** [Acessar Código](https://github.com)
 
 ---
