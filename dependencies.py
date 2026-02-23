@@ -18,6 +18,7 @@ def pegar_sessao():
 
 # Tudo que precisa para criar um token
 def verificar_token(token: str = Depends(oauth2_schema), session: Session = Depends(pegar_sessao)):
+    
     try: 
         dic_info = jwt.decode(token, SECRET_KEY, ALGORITHM)
         id_usuario = int(dic_info.get("sub"))
