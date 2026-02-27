@@ -1,0 +1,637 @@
+==================================================================================
+FASTAPI – ESTUDO DEFINITIVO
+Autor: Orlando Conceição
+==================================================================================
+
+==================================================================================
+COMANDOS IMPORTANTES DE TERMINAL USADOS NO CURSO
+==================================================================================
+
+pip install fastapi uvicorn
+
+PARA QUE SERVE
+- Instala o FastAPI (framework para criar a API)
+- Instala o Uvicorn (servidor que roda a API)
+
+OBSERVAÇÃO IMPORTANTE
+- FastAPI cria a aplicação
+- Uvicorn é quem mantém a aplicação rodando
+- Rodar python main.py NÃO funciona
+
+----------------------------------------------------------------------------------
+
+uvicorn main:app --reload
+
+PARA QUE SERVE
+- Inicia o servidor da aplicação FastAPI
+
+EXPLICAÇÃO
+- main → arquivo main.py
+- app → objeto FastAPI dentro do arquivo
+- --reload → reinicia automaticamente ao salvar o código
+
+RESULTADO
+- API rodando em http://127.0.0.1:8000
+- Documentação automática em /docs
+
+----------------------------------------------------------------------------------
+
+pip install sqlalchemy
+
+PARA QUE SERVE
+- Instala o ORM responsável pela comunicação com o banco de dados
+
+----------------------------------------------------------------------------------
+
+pip install alembic
+
+PARA QUE SERVE
+- Instala a ferramenta de migração do banco de dados
+
+----------------------------------------------------------------------------------
+
+alembic init alembic
+
+PARA QUE SERVE
+- Cria a estrutura inicial do Alembic no projeto
+
+----------------------------------------------------------------------------------
+
+alembic revision --autogenerate -m "mensagem"
+
+PARA QUE SERVE
+- Cria uma migração automática baseada nos models
+
+----------------------------------------------------------------------------------Funcionam juntos
+
+alembic upgrade head
+
+PARA QUE SERVE
+- Aplica todas as migrações pendentes no banco de dados
+
+==================================================================================
+ABAIXO ESTÁ O CONTEÚDO ORIGINAL DAS 10 AULAS (SEM MODIFICAÇÕES)
+==================================================================================
+
+==================================================================================
+FASTAPI – ESTUDO DEFINITIVO (MINICURSO LIRA / YOUTUBE)
+10 AULAS • TEORIA + PRÁTICA • DIDÁTICO E ORGANIZADO
+==================================================================================
+
+OBJETIVO DESTE MATERIAL
+- Entender FastAPI de verdade (não só copiar código)
+- Saber o PORQUÊ de cada arquivo existir
+- Aprender arquitetura básica de backend
+- Evitar erros comuns de iniciante
+- Servir como material de revisão rápida
+
+==================================================================================
+AULA 01 – O QUE É FASTAPI
+==================================================================================
+
+FOCO PRINCIPAL
+- Entender o que é FastAPI e para que ele serve
+
+IDEIA CENTRAL
+- FastAPI é um framework Python para criar APIs REST
+- Ele usa tipagem do Python para validar dados automaticamente
+- Ele cria documentação automática sem esforço
+
+POR QUE ISSO IMPORTA
+- Menos bugs
+- Código mais seguro
+- Muito usado no mercado
+
+PONTOS FORTES
+- Alta performance
+- Simples de usar
+- Documentação automática (/docs)
+
+RESUMO DA AULA
+✔ FastAPI cria APIs
+✔ Valida dados automaticamente
+✔ Gera documentação sozinho
+
+==================================================================================
+AULA 02 – INSTALAÇÃO E PRIMEIRA EXECUÇÃO
+==================================================================================
+
+FOCO PRINCIPAL
+- Subir uma API FastAPI localmente
+
+INSTALAÇÃO
+pip install fastapi uvicorn
+
+EXECUÇÃO CORRETA
+uvicorn main:app --reload
+
+ENDEREÇOS IMPORTANTES
+- API: http://127.0.0.1:8000
+- Docs: http://127.0.0.1:8000/docs
+
+ERRO COMUM
+- Rodar python main.py (isso NÃO sobe servidor)
+
+RESUMO DA AULA
+✔ FastAPI precisa do uvicorn
+✔ uvicorn é quem roda o servidor
+✔ /docs é automático
+
+==================================================================================
+AULA 03 – ESTRUTURA DO PROJETO
+==================================================================================
+
+FOCO PRINCIPAL
+- Organizar o projeto para crescer sem virar bagunça
+
+IDEIA CENTRAL
+- Cada arquivo tem uma responsabilidade
+- Organização evita refatoração no futuro
+
+ESTRUTURA IDEAL
+project/
+├── main.py          → inicia a aplicação
+├── database.py      → conexão com o banco
+├── models.py        → tabelas do banco
+├── schemas.py       → validação de dados
+├── routes/
+│   └── auth.py      → rotas
+├── alembic/         → migrações
+├── alembic.ini
+├── .env
+└── banco.db
+
+ERRO CLÁSSICO
+- Colocar tudo no main.py
+
+RESUMO DA AULA
+✔ Projeto organizado é essencial
+✔ main.py NÃO faz tudo
+✔ Cada coisa no seu lugar
+
+==================================================================================
+AULA 04 – MAIN.PY (PONTO DE ENTRADA)
+==================================================================================
+
+FOCO PRINCIPAL
+- Entender o papel real do main.py
+
+IDEIA CENTRAL
+- main.py apenas inicia a aplicação
+- Ele conecta as rotas
+- Ele NÃO tem regra de negócio
+
+CÓDIGO – main.py
+--------------------------------------------------
+from fastapi import FastAPI
+from routes.auth import auth_router
+
+app = FastAPI()
+
+app.include_router(auth_router)
+--------------------------------------------------
+
+O QUE O MAIN FAZ
+✔ Cria o app
+✔ Conecta rotas
+
+O QUE ELE NÃO FAZ
+✘ Banco
+✘ Session
+✘ Tabelas
+
+RESUMO DA AULA
+✔ main.py é só o “start”
+✔ Quanto mais limpo, melhor
+
+==================================================================================
+AULA 05 – ROTAS E ENDPOINTS
+==================================================================================
+
+FOCO PRINCIPAL
+- Criar caminhos da API
+
+IDEIA CENTRAL
+- Endpoint é o caminho da API
+- Cada endpoint responde a um método HTTP
+
+MÉTODOS HTTP
+GET    → Buscar
+POST   → Criar
+PUT    → Atualizar tudo
+PATCH  → Atualizar parte
+DELETE → Remover
+
+EXEMPLO
+--------------------------------------------------
+from fastapi import FastAPI
+
+app = FastAPI()
+
+@app.get("/")
+def home():
+    return {"mensagem": "API funcionando"}
+--------------------------------------------------
+
+RESUMO DA AULA
+✔ Endpoint é o caminho da API
+✔ Método HTTP define a ação
+
+==================================================================================
+AULA 06 – APIRouter (ORGANIZAÇÃO DAS ROTAS)
+==================================================================================
+
+FOCO PRINCIPAL
+- Separar rotas por contexto
+
+IDEIA CENTRAL
+- APIRouter evita bagunça
+- Organiza o Swagger
+- Evita conflito de rotas
+
+CÓDIGO – routes/auth.py
+--------------------------------------------------
+from fastapi import APIRouter
+
+auth_router = APIRouter(
+    prefix="/auth",
+    tags=["Autenticação"]
+)
+
+@auth_router.post("/login")
+def login():
+    return {"msg": "Login funcionando"}
+--------------------------------------------------
+
+RESUMO DA AULA
+✔ Rotas separadas por assunto
+✔ Swagger organizado
+
+==================================================================================
+AULA 07 – SQLALCHEMY (ORM)
+==================================================================================
+
+FOCO PRINCIPAL
+- Conectar Python ao banco de dados
+
+IDEIA CENTRAL
+- ORM transforma tabela em classe
+- Evita SQL puro
+- Facilita manutenção
+
+O SQLALCHEMY FAZ
+✔ Conecta ao banco
+✔ Cria tabelas
+✔ Faz consultas
+
+RESUMO DA AULA
+✔ ORM = ponte entre código e banco
+
+==================================================================================
+AULA 08 – DATABASE.PY (O MAIS IMPORTANTE)
+==================================================================================
+
+FOCO PRINCIPAL
+- Criar engine, session e Base
+
+IDEIA CENTRAL
+- Tudo depende desse arquivo
+- Base deve ser ÚNICA
+- URL deve ser IGUAL em tudo
+
+CÓDIGO – database.py
+--------------------------------------------------
+from sqlalchemy import create_engine
+from sqlalchemy.orm import sessionmaker, declarative_base
+
+DATABASE_URL = "sqlite:///./banco.db"
+
+engine = create_engine(
+    DATABASE_URL,
+    connect_args={"check_same_thread": False}
+)
+
+SessionLocal = sessionmaker(
+    autocommit=False,
+    autoflush=False,
+    bind=engine
+)
+
+Base = declarative_base()
+--------------------------------------------------
+
+ERROS COMUNS
+- Criar outra Base
+- URL diferente no Alembic
+
+RESUMO DA AULA
+✔ database.py é a fundação do projeto
+
+==================================================================================
+AULA 09 – MODELS, SESSION E SCHEMAS
+==================================================================================
+
+FOCO PRINCIPAL
+- Estrutura do banco + validação de dados
+
+MODELS (TABELAS)
+--------------------------------------------------
+from sqlalchemy import Column, Integer, String
+from database import Base
+
+class Usuario(Base):
+    __tablename__ = "usuarios"
+
+    id = Column(Integer, primary_key=True)
+    email = Column(String, nullable=False)
+    senha = Column(String, nullable=False)
+--------------------------------------------------
+
+SESSION (CONEXÃO COM BANCO)
+--------------------------------------------------
+from database import SessionLocal
+
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+--------------------------------------------------
+
+SCHEMAS (VALIDAÇÃO)
+--------------------------------------------------
+from pydantic import BaseModel
+
+class UsuarioCreate(BaseModel):
+    nome: str
+    email: str
+    senha: str
+
+    class Config:
+        from_attributes = True
+--------------------------------------------------
+
+RESUMO DA AULA
+✔ Model = tabela
+✔ Schema = valida dados
+✔ Session = conexão segura
+
+==================================================================================
+AULA 10 – ALEMBIC, SEGURANÇA E FINALIZAÇÃO
+==================================================================================
+
+FOCO PRINCIPAL
+- Banco versionado e API segura
+
+ALEMBIC
+- Versiona o banco
+- Evita apagar dados
+
+CONFIG IMPORTANTE – env.py
+--------------------------------------------------
+from database import Base
+target_metadata = Base.metadata
+--------------------------------------------------
+
+SEGURANÇA
+- Nunca salvar senha pura
+- Usar bcrypt
+- JWT para autenticação
+
+HTTPException
+--------------------------------------------------
+from fastapi import HTTPException
+raise HTTPException(status_code=401, detail="Não autorizado")
+--------------------------------------------------
+
+CHECKLIST FINAL
+✔ Base única
+✔ URL igual em tudo
+✔ Alembic funcionando
+✔ Session fecha
+✔ Schema separado
+✔ Senha criptografada
+✔ Token com expiração
+
+==================================================================================
+FIM DO ARQUIVO
+==================================================================================
+
+==================================================================================
+IMPORTANTE
+==================================================================================
+
+RESPONDE MODEL
+
+O response_model define o formato da resposta da API.
+Ele não altera o banco de dados nem os models do SQLAlchemy.
+
+Campos que não estão no schema são ignorados automaticamente.
+Isso organiza e padroniza o retorno da API.
+
+EXEMPLO:
+
+Importações:
+from pydantic import BaseModel
+from typing import List
+
+Schema de resposta:
+class PedidoResponseSchema(BaseModel):
+    id: int
+    status: str
+    preco: float
+
+    class Config:
+        from_attributes = True
+
+Uso na rota:
+@router.get("/pedidos", response_model=List[PedidoResponseSchema])
+def listar_pedidos():
+    return session.query(Pedido).all()
+
+
+==============================
+FASTAPI + SQLALCHEMY
+PROBLEMA: LISTAR PEDIDOS COM ITENS
+==============================
+
+PROBLEMA ENFRENTADO
+-------------------
+Ao listar pedidos do usuário logado usando response_model, a API retornava:
+- [] (lista vazia)
+- ou erro 500 ao usar itens: List[ItemPedidoSchema]
+
+Mesmo com dados no banco, os detalhes do pedido não apareciam.
+
+==============================
+CAUSA REAL DO ERRO
+==============================
+
+O erro NÃO estava:
+- no response_model
+- no filtro por usuário
+- no joinedload
+- no schema
+
+O erro estava no RELACIONAMENTO ENTRE OS MODELS.
+
+O SQLAlchemy não conseguia montar corretamente:
+pedido.itens
+
+Porque:
+==>> faltava o relationship inverso (back_populates) <<==
+
+Sem back_populates:
+- o SQLAlchemy até busca os dados
+- mas o Pydantic NÃO consegue converter para o response_model
+- resultado: erro 500 ou lista vazia
+
+==============================
+SOLUÇÃO DEFINITIVA
+==============================
+
+1) Criar relacionamento BIDIRECIONAL com back_populates
+2) Usar response_model corretamente
+3) Usar from_attributes = True nos schemas
+4) Retornar o objeto ORM diretamente (não dict)
+
+==============================
+ARQUIVO: models.py
+==============================
+
+class Pedido(Base):
+    __tablename__ = "pedidos"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    status = Column(String)
+    usuario = Column(ForeignKey("usuarios.id"))
+    preco = Column(Float)
+
+    itens = relationship(
+        "ItemPedido",
+        back_populates="pedido_rel",
+        cascade="all, delete",
+        lazy="joined"
+    )
+
+
+class ItemPedido(Base):
+    __tablename__ = "itens_pedido"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    quantidade = Column(Integer)
+    sabor = Column(String)
+    tamanho = Column(String)
+    preco_unitario = Column(Float)
+
+    pedido = Column(ForeignKey("pedidos.id"))
+
+    pedido_rel = relationship(
+        "Pedido",
+        back_populates="itens"
+    )
+
+REGRA IMPORTANTE:
+Os nomes precisam bater:
+Pedido.itens  <-->  ItemPedido.pedido_rel
+
+==============================
+ARQUIVO: schemas.py
+==============================
+
+from pydantic import BaseModel
+from typing import Optional, List
+from typing import List
+
+class ItemPedidoSchema(BaseModel):
+    quantidade: int
+    sabor: str
+    tamanho: str
+    preco_unitario: float
+
+    class Config:
+        from_attributes = True
+
+
+class ResponsePedidoSchema(BaseModel):
+    id: int
+    status: str
+    preco: float
+    itens: List[ItemPedidoSchema]
+
+    class Config:
+        from_attributes = True
+
+OBS:
+from_attributes = True permite que o Pydantic
+leia diretamente objetos do SQLAlchemy.
+
+==============================
+ARQUIVO: order_router.py
+==============================
+
+from typing import List
+
+@order_router.get(
+    "/listar/pedidos-usuario",
+    response_model=List[ResponsePedidoSchema]
+)
+async def listar_pedidos_usuario(
+    session: Session = Depends(pegar_sessao),
+    usuario: Usuario = Depends(verificar_token)
+):
+    return session.query(Pedido).filter(
+        Pedido.usuario == usuario.id
+    ).all()
+
+IMPORTANTE:
+- NÃO retornar dicionário
+- NÃO montar resposta manual
+- Retornar o objeto ORM direto
+
+==============================
+POR QUE AGORA FUNCIONA
+==============================
+
+1) SQLAlchemy carrega Pedido + ItemPedido corretamente
+2) back_populates liga as duas tabelas
+3) lazy="joined" garante que os itens vêm junto
+4) response_model define o formato da resposta
+5) Pydantic converte ORM -> JSON sem erro
+
+==============================
+REGRA FINAL (DECORAR)
+==============================
+
+Se usar:
+- response_model
+- relacionamento entre tabelas
+- lista de itens (List[Schema])
+
+ENTÃO É OBRIGATÓRIO:
+- relationship nos dois lados
+- back_populates
+- from_attributes = True
+
+Sem isso:
+- erro 500
+- lista vazia
+- FastAPI "não mostra nada"
+
+==============================
+FIM
+==============================
+
+==============================
+TAREFAS
+==============================
+Colocar orientações nas rotas atraves do 
+        """
+        mensagem
+        """
+- Criar home page com detalhes de como funciona a api, explicar todas as rotas
+- Processo de publucação desse sistema
+- Conectar a um front-end
+
+

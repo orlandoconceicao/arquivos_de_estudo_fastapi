@@ -16,7 +16,6 @@ ENV/
 
 # Secrets and Configs
 .env
-txt.txt
 
 # IDEs
 .vscode/
